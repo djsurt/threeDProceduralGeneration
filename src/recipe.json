@@ -1,0 +1,33 @@
+{
+  "base": {
+    "type": "torus",
+    "radius": 1.0,
+    "tube": 0.35,
+    "radialSegments": 64,
+    "tubularSegments": 192
+  },
+  "modifiers": [
+    {
+      "type": "bend",
+      "amount": 0.8,
+      "strength": 0.4,
+      "enabled": true
+    },
+    {
+      "type": "twistNoise",
+      "enabled": true,
+      "twist": 1.4,
+      "noiseAmp": 0.08,
+      "noiseFreq": 6.0,
+      "timeScale": 0.8
+    }
+  ],
+  "material": {
+    "type": "standard",
+    "color": "#22ccff",
+    "emissive": "#0b2a3a",
+    "wireframe": false,
+    "metalness": 0.1,
+    "roughness": 0.35
+  }
+}
