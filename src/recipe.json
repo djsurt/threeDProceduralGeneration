@@ -8,18 +8,24 @@
   },
   "modifiers": [
     {
-      "type": "bend",
-      "amount": 0.8,
-      "strength": 0.4,
-      "enabled": true
-    },
-    {
       "type": "twistNoise",
       "enabled": true,
       "twist": 1.4,
       "noiseAmp": 0.08,
       "noiseFreq": 6.0,
       "timeScale": 0.8
+    },
+    {
+      "type": "bend",
+      "amount": 0.8,
+      "strength": 0.4,
+      "enabled": true
+    },
+    {
+      "type": "taper",
+      "enabled": true,
+      "amount": 0.6,
+      "strength": -0.4
     }
   ],
   "material": {

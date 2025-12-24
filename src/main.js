@@ -1,25 +1,57 @@
 import * as THREE from "three";
 import recipe from "./recipe.json";
 import GUI from "lil-gui";
-const gui = new GUI();
-recipe.modifiers.forEach((mod, index) => {
-  const folder = gui.addFolder(`${index}: ${mod.type}`);
 
-  folder.add(mod, "enabled");
+function moveModifierUp(index) {
+  if(index <= 0) return;
+  const mods = recipe.modifiers;
+  [mods[index - 1], mods[index]] = [mods[index], mods[index - 1]];
+  rebuildGUI();
+}
 
-  if (mod.type === "bend") {
-    folder.add(mod, "amount", 0, 2, 0.01);
-    folder.add(mod, "strength", 0, 1, 0.01);
-  }
+function moveModifierDown(index) {
+  const mods = recipe.modifiers;
+  if(index >= mods.length - 1) return;
+  [mods[index], mods[index + 1]] = [mods[index + 1], mods[index]];
+  rebuildGUI();
+}
 
-  if (mod.type === "twistNoise") {
-    folder.add(mod, "twist", 0, 3, 0.01);
-    folder.add(mod, "noiseAmp", 0, 0.2, 0.001);
-    folder.add(mod, "noiseFreq", 0, 10, 0.1);
-    folder.add(mod, "timeScale", 0, 3, 0.01);
-  }
-});
+let gui;
 
+function rebuildGUI() {
+  if(gui) gui.destroy();
+  gui = new GUI();
+
+  recipe.modifiers.forEach((mod, index) => {
+    const folder = gui.addFolder(`${index}: ${mod.type}`);
+
+    folder.add(mod, "enabled");
+
+    //Reorder buttons
+    folder.add({ up: () => moveModifierUp(index)}, "up");
+    folder.add({ down: () => moveModifierDown(index)}, "down");
+
+    // Modifier params
+    if (mod.type === "bend") {
+      folder.add(mod, "amount", 0, 2, 0.01);
+      folder.add(mod, "strength", 0, 1, 0.01);
+    }
+
+    if (mod.type === "twistNoise") {
+      folder.add(mod, "twist", 0, 3, 0.01);
+      folder.add(mod, "noiseAmp", 0, 0.2, 0.001);
+      folder.add(mod, "noiseFreq", 0, 10, 0.1);
+      folder.add(mod, "timeScale", 0, 3, 0.01);
+    }
+
+    if (mod.type === "taper") {
+      folder.add(mod, "amount", -2, 2, 0.01);
+      folder.add(mod, "strength", -1, 1, 0.01);
+    }
+  });
+}
+
+rebuildGUI();
 // ---------- 1) Three.js basics (smallest render loop) ----------
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x072639);
@@ -111,9 +143,30 @@ function bend(geometry, mod, time) {
   pos.needsUpdate = true;
 }
 
+function taper(geometry, mod, time) {
+  const pos = geometry.attributes.position;
+  const v = new THREE.Vector3();
+
+  for(let i = 0; i < pos.count; i++){
+    v.fromBufferAttribute(pos, i);
+
+    //Normalize along chosen axis (Y by default over here)
+    const t = v.y * mod.amount;
+
+    //Scale factor
+    const s = 1 + t * mod.strength;
+
+    v.x *= s;
+    v.z *= s;
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  pos.needsUpdate = true;
+}
+
 const MODIFIERS = {
   twistNoise,
-  bend
+  bend,
+  taper
 };
 
 // ---------- 4) Material from recipe.material ----------
