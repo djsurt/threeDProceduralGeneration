@@ -73,7 +73,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-camera.position.set(0, 0.6, 3.2);
+camera.position.set(0, -0.2, 5.5);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -95,6 +95,14 @@ function buildBaseGeometry(base) {
       base.tube,
       base.radialSegments,
       base.tubularSegments
+    );
+  } else if (base.type === "cylinder") {
+    return new THREE.CylinderGeometry(
+      0.4,
+      0.05,
+      3.0,
+      32,
+      64
     );
   }
   throw new Error(`Unknown base type: ${base.type}`);
@@ -142,8 +150,9 @@ function bend(geometry, mod, time) {
   for (let i = 0; i < pos.count; i++) {
     v.fromBufferAttribute(pos, i);
 
+    const d = getDriverValue(v, mod.axis);
     // Distance along X drives bend amount
-    const t = v.x * mod.amount;
+    const t = d * mod.amount;
 
     // Bend upward (parabolic curve)
     v.y += t * t * mod.strength;
@@ -163,10 +172,14 @@ function taper(geometry, mod, time) {
 
     const d = getDriverValue(v, mod.axis);
     //Normalize along chosen axis (Y by default over here)
-    const t = d * mod.amount;
+    const t = Math.max(0, d / mod.range) * mod.amount;
 
     //Scale factor
-    const s = 1 + t * mod.strength;
+    const s = THREE.MathUtils.clamp(
+      1 + t * mod.strength,
+      0.2,
+      2.0
+    );
 
     v.x *= s;
     v.z *= s;

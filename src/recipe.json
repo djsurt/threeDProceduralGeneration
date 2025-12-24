@@ -21,14 +21,16 @@
       "enabled": true,
       "axis": "x",
       "amount": 0.6,
-      "strength": 0.3
+      "strength": 0.3,
+      "range": 1.0
     },
     {
       "type": "taper",
       "enabled": true,
       "axis": "y",
       "amount": 1.2,
-      "strength": -0.7
+      "strength": -0.7,
+      "range": 1.0
     }
   ],
   "material": {
