@@ -16,6 +16,17 @@ function moveModifierDown(index) {
   rebuildGUI();
 }
 
+function getDriverValue(v, axis) {
+  switch(axis) {
+    case "x": return v.x;
+    case "y": return v.y;
+    case "z": return v.z;
+    case "radial": return Math.sqrt(v.x * v.x + v.z * v.z);
+    case "angle": return Math.atan2(v.z, v.x);
+    default: return v.y;
+  }
+}
+
 let gui;
 
 function rebuildGUI() {
@@ -150,8 +161,9 @@ function taper(geometry, mod, time) {
   for(let i = 0; i < pos.count; i++){
     v.fromBufferAttribute(pos, i);
 
+    const d = getDriverValue(v, mod.axis);
     //Normalize along chosen axis (Y by default over here)
-    const t = v.y * mod.amount;
+    const t = d * mod.amount;
 
     //Scale factor
     const s = 1 + t * mod.strength;

@@ -10,22 +10,25 @@
     {
       "type": "twistNoise",
       "enabled": true,
-      "twist": 1.4,
-      "noiseAmp": 0.08,
-      "noiseFreq": 6.0,
-      "timeScale": 0.8
+      "axis": "y",
+      "twist": 0.4,
+      "noiseAmp": 0.02,
+      "noiseFreq": 3.0,
+      "timeScale": 0.4
     },
     {
       "type": "bend",
-      "amount": 0.8,
-      "strength": 0.4,
-      "enabled": true
+      "enabled": true,
+      "axis": "x",
+      "amount": 0.6,
+      "strength": 0.3
     },
     {
       "type": "taper",
       "enabled": true,
-      "amount": 0.6,
-      "strength": -0.4
+      "axis": "y",
+      "amount": 1.2,
+      "strength": -0.7
     }
   ],
   "material": {
