@@ -1,6 +1,41 @@
 import * as THREE from "three";
-import recipe from "./recipe.json";
+import initialRecipe from "./recipe.json";
 import GUI from "lil-gui";
+
+let recipe = structuredClone(initialRecipe);
+
+
+// Button logic
+const generateBtn = document.createElement("button");
+generateBtn.innerText = "Generate Appendage";
+generateBtn.style.position = "fixed";
+generateBtn.style.top = "12px";
+generateBtn.style.left = "12px";
+generateBtn.style.zIndex = "10";
+document.body.appendChild(generateBtn);
+
+generateBtn.onclick = () => {
+  recipe = generateAppendageRecipe();
+
+  // Rebuild base geometry
+  const newBase = buildBaseGeometry(recipe.base);
+  baseGeometry.dispose();
+  geometry.dispose();
+
+  baseGeometry = newBase;
+  geometry = baseGeometry.clone();
+
+  // Update mesh
+  mesh.geometry = geometry;
+
+  // Update material
+  mesh.material.dispose();
+  mesh.material = buildMaterial(recipe.material);
+
+  rebuildGUI();
+};
+
+
 
 function moveModifierUp(index) {
   if(index <= 0) return;
@@ -8,6 +43,64 @@ function moveModifierUp(index) {
   [mods[index - 1], mods[index]] = [mods[index], mods[index - 1]];
   rebuildGUI();
 }
+
+function rand(min, max) {
+  return min + Math.random() * (max - min);
+}
+
+function choose(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function generateAppendageRecipe() {
+  return {
+    base: {
+      type: "cylinder",
+      height: rand(2.5, 4.5),
+      radiusBottom: rand(0.3, 0.6),
+      radiusTop: rand(0.02, 0.1),
+      radialSegments: 32,
+      heightSegments: 64
+    },
+
+  material: {
+    type: "standard",
+    color: "#7a5a3a",      // darker bone / horn
+    emissive: "#120a05",
+    roughness: 0.8,
+    metalness: 0.05
+  }
+  ,
+
+    modifiers: [
+      {
+        type: "taper",
+        enabled: true,
+        axis: "y",
+        range: 1.0,
+        amount: rand(0.8, 1.4),
+        strength: rand(-0.8, -0.4)
+      },
+      {
+        type: "bend",
+        enabled: true,
+        axis: choose(["x", "z"]),
+        amount: rand(0.3, 0.8),
+        strength: rand(0.2, 0.6)
+      },
+      {
+        type: "twistNoise",
+        enabled: true,
+        axis: "y",
+        twist: rand(0.2, 0.6),
+        noiseAmp: rand(0.01, 0.05),
+        noiseFreq: rand(2.0, 5.0),
+        timeScale: rand(0.2, 0.6)
+      }
+    ]
+  };
+}
+
 
 function moveModifierDown(index) {
   const mods = recipe.modifiers;
@@ -78,6 +171,9 @@ camera.position.set(0, -0.2, 5.5);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+const rim = new THREE.DirectionalLight(0xffffff, 0.6);
+rim.position.set(-3, 2, -2);
+scene.add(rim);
 document.body.style.margin = "0";
 document.body.appendChild(renderer.domElement);
 
@@ -114,12 +210,15 @@ function twistNoise(geometry, mod, time) {
   const pos = geometry.attributes.position;
   const v = new THREE.Vector3();
 
+  // Get appropriate dimension for normalization based on geometry type
+  const normalizeRange = recipe.base.tube ?? recipe.base.height ?? 2.0;
+
   for(let i = 0; i < pos.count; ++i){
     v.fromBufferAttribute(pos, i);
 
     //Twist around Y
     const animatedTwist = mod.twist * (1 + 0.3 * Math.sin(localTime));
-    const normalizedY = v.y / recipe.base.tube;
+    const normalizedY = v.y / normalizeRange;
     const angle = animatedTwist * normalizedY;
     const cosA = Math.cos(angle);
     const sinA = Math.sin(angle);
@@ -133,8 +232,12 @@ function twistNoise(geometry, mod, time) {
       Math.sin(v.x * mod.noiseFreq + localTime) *
       Math.sin(v.y * mod.noiseFreq + localTime) *
       Math.sin(v.z * mod.noiseFreq + localTime);
-    const radial = new THREE.Vector3(v.x, 0, v.z).normalize();
-    v.addScaledVector(radial, n * mod.noiseAmp);
+    const radial = new THREE.Vector3(v.x, 0, v.z);
+    const radialLength = radial.length();
+    if (radialLength > 0.0001) {
+      radial.divideScalar(radialLength);
+      v.addScaledVector(radial, n * mod.noiseAmp);
+    }
 
     pos.setXYZ(i, v.x, v.y, v.z);
   }
@@ -209,8 +312,8 @@ function buildMaterial(mat) {
 }
 
 // Build + deform once (later you can rebuild on recipe changes)
-const baseGeometry = buildBaseGeometry(recipe.base);
-const geometry = baseGeometry.clone();
+let baseGeometry = buildBaseGeometry(recipe.base);
+let geometry = baseGeometry.clone();
 const mesh = new THREE.Mesh(geometry, buildMaterial(recipe.material));
 scene.add(mesh);
 
