@@ -98,11 +98,11 @@ function buildBaseGeometry(base) {
     );
   } else if (base.type === "cylinder") {
     return new THREE.CylinderGeometry(
-      0.4,
-      0.05,
-      3.0,
-      32,
-      64
+      base.radiusTop ?? 0.05,
+      base.radiusBottom ?? 0.4,
+      base.height ?? 3.0,
+      base.radialSegments ?? 32,
+      base.heightSegments ?? 64
     );
   }
   throw new Error(`Unknown base type: ${base.type}`);

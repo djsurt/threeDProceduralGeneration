@@ -1,10 +1,11 @@
 {
   "base": {
-    "type": "torus",
-    "radius": 1.0,
-    "tube": 0.35,
-    "radialSegments": 64,
-    "tubularSegments": 192
+      "type": "cylinder",
+      "height": 3.0,
+      "radiusBottom": 0.4,
+      "radiusTop": 0.05,
+      "radialSegments": 32,
+      "heightSegments": 64
   },
   "modifiers": [
     {
