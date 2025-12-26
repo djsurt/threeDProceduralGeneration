@@ -3,7 +3,34 @@ import initialRecipe from "./recipe.json";
 import GUI from "lil-gui";
 
 let recipe = structuredClone(initialRecipe);
+const appendages = [];
 
+function clearAppendages() {
+  for(const a of appendages) {
+    a.mesh.geometry.dispose();
+    a.mesh.material.dispose();
+    scene.remove(a.mesh);
+  }
+  appendages.length = 0;
+}
+
+function createAppendage(recipe, position) {
+  baseGeometry = buildBaseGeometry(recipe.base);
+  const geometry = baseGeometry.clone();
+  const material = buildMaterial(recipe.material);
+
+  const mesh = new THREE.Mesh(geometry, material);
+  mesh.position.copy(position);
+  mesh.rotation.x = 0.35;
+
+  scene.add(mesh);
+  appendages.push({
+    recipe,
+    baseGeometry,
+    geometry,
+    mesh
+  });
+} 
 
 // Button logic
 const generateBtn = document.createElement("button");
